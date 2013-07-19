@@ -147,13 +147,13 @@ def load_current_resource
 end
 
 def package_exists?(name, version)  
-    name = "#{name}".strip
-    version = "#{version}".strip
-    cmd = ::File.join(node['chocolatey']['bin_path'],"chocolatey.bat") + " version "
-    Chef::Log.info "Checking to see if this chocolatey package exists: '#{name}' '#{version}'"
-    Chef::Log.debug "#{cmd} #{name} -localonly"
-    
-    IO.popen("#{cmd} #{name} -localonly").each do |line|    
+  name = "#{name}".strip
+  version = "#{version}".strip
+  cmd = ::File.join(node['chocolatey']['bin_path'],"chocolatey.bat") + " version "
+  Chef::Log.info "Checking to see if this chocolatey package exists: '#{name}' '#{version}'"
+  Chef::Log.info "#{cmd} #{name} -localonly"
+  IO.popen ("#{cmd} #{name} -localonly") do |io|
+    io.each do |line|
       line = line.chomp
       if(line.include?('name') || line.include?('----') || line.length == 0)
         #ignore these lines
@@ -163,11 +163,12 @@ def package_exists?(name, version)
           Chef::Log.info "Found local package '#{name}' '#{version}'"
           return true
         else
-          Chef::Log.debug "package: '#{lines[0]}' '#{lines[1]}'"
+          Chef::Log.info "package: '#{lines[0]}' '#{lines[1]}'"
         end          
       end
     end
-    return false
+  end
+  return false
 end
 
 def hasNotSpecifiedVersion
